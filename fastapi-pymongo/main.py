@@ -1,9 +1,11 @@
 
-from fastapi import FastAPI,Request
+from fastapi import FastAPI,Request,Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
+from fastapi.responses import RedirectResponse
+from MyConnection import Employee
+from bson.objectid import ObjectId
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -23,15 +25,88 @@ async def read_item(request: Request, id: str):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_items(request:Request):
-     return templates.TemplateResponse("index.html", {"request": request})
+    emp =None
+    employees = None
+    try:
+        emp = Employee() 
+        employees = emp.get_emp_data()
+    except BaseException as err:
+         print(err,"exception")
+    finally:
+        emp.delete()
+    # print(employees)
+    return templates.TemplateResponse("index.html", {"request": request,"employees": employees})
 
 @app.post("/item/add", response_class=HTMLResponse)
-async def add_item(request:Request):
-    return templates.TemplateResponse("item.html", {"request": request, "id": id})
+async def add_item(request:Request,name: str= Form(), gf:bool = Form(),address:str=Form(),salary:float=Form()):
+    emp_dict ={
+        "name": name,
+        "gf": gf,
+        "address": address,
+        "salary":salary
+    }
+    
 
-@app.put('item/update',response_class=HTMLResponse)
-async def update_item(request:Request):
-    return templates.TemplateResponse("item.html", {"request": request, "id": id})
+    print(emp_dict)
+    emp = None
+    employees = None
+    try:
+        emp = Employee() 
+        emp.add_data(emp_dict)
+        employees = emp.get_emp_data()
+    except BaseException as err:
+         print(err,"exception")
+    finally:
+        if emp is not None:
+            emp.delete()
+    return templates.TemplateResponse("index.html", {"request": request,"employees": employees})
+
+@app.post("/item/addAll", response_class=HTMLResponse)
+async def add_items(request:Request):
+    emp = None
+    dict_data = [
+            {  "name": "Vishwash", "gf": False, "address":"CSE","salary":10000},
+            {  "name": "Vishesh", "gf": False, "address":"IT","salary":10000},
+            {  "name": "Shivam", "gf": False, "address":"ME","salary":10000},
+            {  "name": "Yash", "gf": False, "address":"ECE","salary":10000},
+    ]
+    try:
+        emp = Employee()
+        emp.add_all_data(dict_data)
+    except BaseException as e:
+        print(e,"exception")
+    finally:
+        if emp is not None:
+            emp.delete()
+        else:
+            print("check connections")
+    return templates.TemplateResponse("index.html", {"request": request, })
+
+@app.post('/item/update',response_class=HTMLResponse)
+async def update_item(request:Request,id = Form(),name: str= Form(), gf:bool = Form(),address   =Form(),salary:float=Form()):
+    emp_dict ={
+        "name": name,
+        "gf": gf,
+        "address": address,
+        "salary":salary
+    }
+    emp_id={
+        '_id':ObjectId(id)
+    }
+
+    print(emp_dict,"update")
+    emp = None
+    employees = None
+    try:
+        emp = Employee() 
+        emp.set_emp_data(emp_id,emp_dict)
+        employees = emp.get_emp_data()
+    except BaseException as err:
+         print(err,"exception")
+    finally:
+        if emp is not None:
+            emp.delete()
+    return RedirectResponse('/', status_code=302)
 
 
 @app.get("/items/{id}", response_class=HTMLResponse)
