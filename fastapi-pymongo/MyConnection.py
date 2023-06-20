@@ -1,6 +1,6 @@
 import os
 from pymongo import MongoClient
-
+from bson.objectid import ObjectId
 os.environ["MONGO_URI"] = "mongodb://localhost:27017/"
 
 
@@ -27,8 +27,17 @@ class Employee(Connections):
     def get_emp_data(self):
         response = self.employee.find()
         return list(response)
+    
     def set_emp_data(self,id,data):
-        print(id)
-        print(data)
         self.employee.update_one(id, {"$set" : data})
+    
+    def remove_emp_data(self,id):
+        self.employee.delete_one(id)
+    
+    def remove_emps(self,ids):
+        emp_id={}
+        for id in ids:
+            emp_id['_id'] = ObjectId(id)
+            self.employee.delete_one(emp_id)
+
         

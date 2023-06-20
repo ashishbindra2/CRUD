@@ -100,7 +100,6 @@ async def update_item(request:Request,id = Form(),name: str= Form(), gf:bool = F
     try:
         emp = Employee() 
         emp.set_emp_data(emp_id,emp_dict)
-        employees = emp.get_emp_data()
     except BaseException as err:
          print(err,"exception")
     finally:
@@ -109,6 +108,34 @@ async def update_item(request:Request,id = Form(),name: str= Form(), gf:bool = F
     return RedirectResponse('/', status_code=302)
 
 
-@app.get("/items/{id}", response_class=HTMLResponse)
-async def delete_item(request:Request):
-    return templates.TemplateResponse("item.html", {"request": request, "id": id})
+@app.post("/item/delete/{id}", response_class=HTMLResponse)
+async def delete_item(request:Request,id):
+    emp_id = {
+        "_id" :ObjectId(id)
+    }
+    emp = None
+    employees = None
+    try:
+        emp = Employee() 
+        emp.remove_emp_data(emp_id)
+    except BaseException as err:
+         print(err,"exception")
+    finally:
+        if emp is not None:
+            emp.delete()
+    return RedirectResponse('/', status_code=302)
+
+
+@app.post("/item/delete_many", response_class=HTMLResponse)
+async def delete_items(request:Request,ids:str=Form()):
+    '''TODO chenge js from string to array'''
+    temp_id = ids.split(',')
+    try:
+        emp = Employee() 
+        emp.remove_emps(temp_id)
+    except BaseException as err:
+         print(err,"exception")
+    finally:
+        if emp is not None:
+            emp.delete()
+    return RedirectResponse('/', status_code=302)
