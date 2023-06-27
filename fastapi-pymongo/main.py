@@ -139,3 +139,48 @@ async def delete_items(request:Request,ids:str=Form()):
         if emp is not None:
             emp.delete()
     return RedirectResponse('/', status_code=302)
+
+
+@app.get("/test", response_class=HTMLResponse)
+async def add_items(request:Request):
+ 
+    return templates.TemplateResponse("edit.html", {"request": request, })
+
+
+@app.get("/home", response_class=HTMLResponse)
+async def read_items(request:Request):
+    emp =None
+    employees = None
+    try:
+        emp = Employee() 
+        employees = emp.get_emp_data()
+    except BaseException as err:
+         print(err,"exception")
+    finally:
+        emp.delete()
+    # print(employees)
+    return templates.TemplateResponse("home.html", {"request": request,"employees": employees})
+
+@app.post("/home/add", response_class=HTMLResponse)
+async def add_item(request:Request,name: str= Form(), gf:bool = Form(),address:str=Form(),salary:float=Form()):
+    emp_dict ={
+        "name": name,
+        "gf": gf,
+        "address": address,
+        "salary":salary
+    }
+    
+
+    print(emp_dict)
+    emp = None
+    employees = None
+    try:
+        emp = Employee() 
+        emp.add_data(emp_dict)
+        employees = emp.get_emp_data()
+    except BaseException as err:
+         print(err,"exception")
+    finally:
+        if emp is not None:
+            emp.delete()
+    return templates.TemplateResponse("home.html", {"request": request,"employees": employees})
