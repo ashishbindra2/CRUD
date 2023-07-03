@@ -27,7 +27,7 @@ def validate_data(text, intent, entities_list):
 
 
 def add_json(k, v):
-    file = open('./input/data.json', 'r+', encoding="utf8")
+    file = open('static/test.json', 'r+', encoding="utf8")
     # Move the file pointer to the beginning
     file.seek(0)
     json_data = json.load(file)
@@ -58,67 +58,58 @@ def add_json(k, v):
 
 
 def read_json():
-    with open('./static/data.json', 'r', encoding="utf-8-sig") as f:
-        print(f,"read")
-        json_data = json.load(f)
+    try:
+        with open('static/test.json', 'r', encoding="utf-8-sig") as f:
+            json_data = json.load(f)
 
-    final_data = {"rasa_nlu_data": {
-        "common_examples": [
-        ]
-    }}
-    # entities_set = set()
-    intends = set()
-    question = set()
-    # synonyms = set()
-    nlu_dict = {}
-    for i in json_data['rasa_nlu_data']['common_examples']:
-        text = i['text']
-        question.add(text)
-        intent = i['intent']
-        intends.add(intent)
-        entities_list = i['entities']
-        nlu_dict[text] = intent
-        temp_dict = validate_data(text, intent, entities_list)
-        final_data['rasa_nlu_data']['common_examples'].append(temp_dict)
-    return nlu_dict, intends
+        intends = set()
+        nlu_dict = {}
+        for i in json_data['rasa_nlu_data']['common_examples']:
+            text = i['text']
+            intent = i['intent']
+            intends.add(intent)
+            nlu_dict[text] = intent
+
+        return nlu_dict, intends
+
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print("An error occurred while processing the JSON file:", e)
+        return None, None
 
 
 # read_json()
-
 def remove_json(k, v=""):
-    file = open('./static/data.json', 'r+', encoding="utf-8-sig")
-    # Move the file pointer to the beginning
-    file.seek(0)
-    json_data = json.load(file)
-    final_data = {
-
-        "text": k,
-        "intent": v,
-        "entities": []
-
-    }
-    # Remove the entry from the JSON data
-    common_examples = json_data["rasa_nlu_data"]["common_examples"]
-    common_examples = [example for example in common_examples if example["text"] != final_data["text"]]
-    json_data["rasa_nlu_data"]["common_examples"] = common_examples
-    file.seek(0)
-    json.dump(json_data, file, indent=4)
-    file.truncate()
-
-    file.close()
-
+    try:
+        with open('./static/test.json', 'r', encoding="utf-8") as file:
+            json_data = json.load(file)
+        
+        final_data = {
+            "text": k,
+            "intent": v,
+            "entities": []
+        }
+        
+        # Remove the entry from the JSON data
+        common_examples = json_data["rasa_nlu_data"]["common_examples"]
+        common_examples = [example for example in common_examples if example["text"] != final_data["text"]]
+        json_data["rasa_nlu_data"]["common_examples"] = common_examples
+        
+        with open('./static/test.json', 'w', encoding="utf-8") as file:
+            json.dump(json_data, file, indent=4)
+            
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print("An error occurred while processing the JSON file:", e)
 
 def update_json(text, intent=""):
-    file = open('./static/data.json', 'r+', encoding="utf8")
-    # Move the file pointer to the beginning
-    file.seek(0)
-    json_data = json.load(file)
-    common_examples = json_data["rasa_nlu_data"]["common_examples"]
-    for example in common_examples:
-        if example["text"] == text:
-            example['intent'] = intent
+    with open('./static/test.json', 'r+', encoding="utf8") as fp:
+        # Move the file pointer to the beginning
+        fp.seek(0)
+        json_data = json.load(fp)
+        common_examples = json_data["rasa_nlu_data"]["common_examples"]
+        for example in common_examples:
+            if example["text"] == text:
+                example['intent'] = intent
 
-    file.seek(0)
-    json.dump(json_data, file, indent=4)
-    file.truncate()
-    file.close()
+        fp.seek(0)
+        fp.truncate()
+        json.dump(json_data, fp, indent=4)

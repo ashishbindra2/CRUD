@@ -23,20 +23,20 @@ async def backend_ui_home(request: Request):
     return templates.TemplateResponse('index.html', {"request": request,"nlu_data" : text, "intends": intent})
 
 
-@app.post("/add_nlu", response_class=HTMLResponse)
+@app.post("/add", response_class=HTMLResponse)
 async def admin_model_config(sentence=Form(), intent=Form()):
     add_json(sentence, intent)
     return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
 
 
-@app.post("/delete", response_class=HTMLResponse)
-async def admin_model_config(sentence=Form(), intent: str = Form(default="")):
+@app.post("/delete")
+def delete(sentence=Form(), intent: str = Form(default="")):
     print(intent,sentence,'nil')
-    remove_json(sentence, intent)
+    # remove_json(sentence, intent)
     return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
 
 
-@app.post("/nlu_update")
+@app.post("/update")
 async def admin_nlu_update(request: Request):
     request_data_json = await request.json()
 
